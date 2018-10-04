@@ -2,9 +2,19 @@ const express = require('express');
 var http = require('http');
 var WebSocketServer = require('websocket').server;
 var bodyParser = require('body-parser');
-var Sequelize = require('sequelize');
+var firebase = require('firebase');
 const app = express();
 const port = 3000;
+
+var config = {
+    apiKey: "AIzaSyDSvZBxDqC3yNc8xa4A4UJuJc0V5Bbjk8c",
+    authDomain: "patti-8678e.firebaseapp.com",
+    databaseURL: "https://patti-8678e.firebaseio.com",
+    projectId: "patti-8678e",
+    storageBucket: "patti-8678e.appspot.com",
+    messagingSenderId: "940501102421"
+  };
+firebase.initializeApp(config);
 
 app.use(express.static('public'));
 app.use(express.static('image'));
@@ -12,22 +22,6 @@ app.use(bodyParser.json({limit: '5mb'}));
 app.use(bodyParser.urlencoded({ extended: true ,limit: '5mb'}));
 
 var connectionIDCounter = 1;
-
-var orm = new Sequelize('3patti','root','',{
-	logging : function(query){
-		// console.log('sql Log: ',query);
-	},
-	host: 'localhost',
-	dialect: 'mysql',
-	pool:{
-		max:5,
-		min:0,
-		idle: 10000
-	},
-	define: {
-	    timestamps: false // true by default
-	}
-});
 
 var server = http.createServer(function(request, response) {
 
@@ -40,9 +34,6 @@ server = app.listen(port,function(){
 wsServer = new WebSocketServer({
 	httpServer: server
 });
-
-
-var Users = require('./modal/users')(orm);
 
 var CardConst = require('./constant/card');
 
@@ -73,7 +64,6 @@ wsServer.on('request', function(request) {
               connection.sendUTF(JSON.stringify({"type":"LOGIN_ERROR","data":""}));
             }
           });
-
           break;
         default:
 					connection.sendUTF(JSON.stringify({"type":"DEFAULT","msg":"Please send valid type"}));
